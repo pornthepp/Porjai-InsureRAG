@@ -1,0 +1,16 @@
+.env
+venv/
+.agents/
+__pycache__/
+*.pyc
+.pytest_cache/
+pytest-cache-files-*/
+
+node_modules/
+frontend/dist/
+frontend/.vite/
+
+my_vectordb/
+backup/
+
+.streamlit/secrets.toml
