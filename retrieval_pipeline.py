@@ -1,8 +1,13 @@
+from pathlib import Path
+
 import chromadb
 from sentence_transformers import SentenceTransformer
 from retrieval_grader import grade_documents
 
-DB_PATH = "./my_vectordb"
+# ผูก DB_PATH กับตำแหน่งไฟล์นี้ (project root) แทน cwd ตอนรัน
+# กัน ChromaDB โหลด collection พังถ้า backend/entrypoint อื่นถูกรันจาก dir อื่น
+_PROJECT_ROOT = Path(__file__).resolve().parent
+DB_PATH = str(_PROJECT_ROOT / "my_vectordb")
 COLLECTION_NAME = "insurance_docs"
 EMBEDDING_MODEL = "paraphrase-multilingual-MiniLM-L12-v2"
 MAX_GRADE_DISTANCE_THRESHOLD = 0.5

@@ -1,10 +1,14 @@
 import os
 import re
-import chromadb
-from sentence_transformers import SentenceTransformer 
+from pathlib import Path
 
-DATA_DIR = "data"
-DB_PATH = "./my_vectordb"
+import chromadb
+from sentence_transformers import SentenceTransformer
+
+# ผูก path กับตำแหน่งไฟล์นี้ (project root) แทน cwd ตอนรัน ให้ผลเหมือนเดิมไม่ว่ารันจากไหน
+_PROJECT_ROOT = Path(__file__).resolve().parent
+DATA_DIR = str(_PROJECT_ROOT / "data")
+DB_PATH = str(_PROJECT_ROOT / "my_vectordb")
 COLLECTION_NAME = "insurance_docs"
 EMBEDDING_MODEL = "paraphrase-multilingual-MiniLM-L12-v2"
 COLLECTION_METADATA = {"hnsw:space": "cosine"}
