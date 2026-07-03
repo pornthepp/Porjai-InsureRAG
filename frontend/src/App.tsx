@@ -6,6 +6,7 @@ import { parseOptions } from "./parseOptions";
 import { parseLogLine } from "./parseLogLine";
 import { streamChat } from "./api";
 import type { ChatMessage, LogStep } from "./types";
+import aiAvatar from "./assets/ai_avatar.jpg";
 
 const WELCOME_MESSAGE =
   "สวัสดีค่ะ ยินดีให้บริการเรื่องประกันภัยค่ะ สนใจประกันรถยนต์หรือประกันชีวิตคะ พิมพ์คำถามของคุณได้เลยค่ะ" +
@@ -25,19 +26,29 @@ export default function App() {
 
   const chatEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  // ref-based in-flight guard: state `pending` มาจาก closure เก่าตอน event handler ถูกสร้าง
+  // ถ้ากด Enter/ปุ่มส่งรัวสองทีในเฟรมเดียวกัน (ก่อน React re-render) การเช็ค `pending` จาก state
+  // เพียงอย่างเดียวจะผ่าน guard ทั้งคู่ ref อ่าน/เขียนแบบ synchronous เลยกันซ้อนได้จริง
+  const inFlightRef = useRef(false);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, pending, logSteps]);
 
   async function sendMessage(question: string) {
-    if (!question.trim() || pending) return;
+    if (!question.trim() || inFlightRef.current) return;
 
+    inFlightRef.current = true;
     setMessages((prev) => [...prev, buildMessage("user", question)]);
     setInputValue("");
     setPending(true);
-    setLogSteps([]);
-    setRawLogs("");
+    // สะสม log ต่อกันทั้งบทสนทนา (ไม่ล้างทุกคำถาม) แล้วคั่นด้วยเส้นแบ่งบอกจุดเริ่มคำถามใหม่
+    // เพื่อให้เห็นว่า step ไหนเป็นของคำถามไหน
+    setLogSteps((prev) => [
+      ...prev,
+      { icon: "🗨️", title: "คำถามใหม่", detail: question, type: "turn", isTurnMarker: true },
+    ]);
+    setRawLogs((prev) => (prev ? `${prev}\n--- ${question} ---` : `--- ${question} ---`));
 
     try {
       await streamChat(question, (event) => {
@@ -47,13 +58,11 @@ export default function App() {
           if (step) setLogSteps((prev) => [...prev, step]);
         } else if (event.type === "done") {
           setMessages((prev) => [...prev, buildMessage("assistant", event.data)]);
-          setPending(false);
         } else if (event.type === "error") {
           setMessages((prev) => [
             ...prev,
             buildMessage("assistant", `ขออภัยค่ะ เกิดข้อผิดพลาด: ${event.data}`),
           ]);
-          setPending(false);
         }
       });
     } catch (err) {
@@ -61,8 +70,11 @@ export default function App() {
         ...prev,
         buildMessage("assistant", `ขออภัยค่ะ เชื่อมต่อระบบไม่ได้: ${(err as Error).message}`),
       ]);
-      setPending(false);
     } finally {
+      // เคลียร์ pending/guard เสมอไม่ว่า stream จะจบแบบมี done/error หรือจบเฉยๆ โดยไม่มี event
+      // ป้องกัน input ค้างล็อกถาวรถ้า backend ปิด stream โดยไม่ส่ง done/error
+      inFlightRef.current = false;
+      setPending(false);
       setTimeout(() => inputRef.current?.focus(), 0);
     }
   }
@@ -98,7 +110,13 @@ export default function App() {
             ))}
             {pending && (
               <div className="chat-row assistant">
-                <div className="chat-avatar" />
+                <div className="chat-avatar">
+                  <img
+                    src={aiAvatar}
+                    alt="AI"
+                    style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }}
+                  />
+                </div>
                 <div className="chat-bubble chat-thinking-bubble">
                   <div className="chat-dot" />
                   <div className="chat-dot" />

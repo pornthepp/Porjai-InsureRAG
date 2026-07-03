@@ -14,4 +14,6 @@ export interface LogStep {
   title: string;
   detail: string;
   type: string;
+  /** true = เส้นแบ่งบอกจุดเริ่มคำถามใหม่ ไม่นับเป็น step และไม่มีเลข Step กำกับ */
+  isTurnMarker?: boolean;
 }

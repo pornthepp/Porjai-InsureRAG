@@ -1,3 +1,5 @@
+import ReactMarkdown from "react-markdown";
+import remarkBreaks from "remark-breaks";
 import type { ChatMessage } from "../types";
 import aiAvatar from "../assets/ai_avatar.jpg";
 
@@ -22,8 +24,14 @@ export default function ChatBubble({ message, onOptionClick, disabled }: Props) 
           <img src={aiAvatar} alt="AI" style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }} />
         )}
       </div>
-      <div>
-        <div className="chat-bubble">{message.text}</div>
+      <div className="chat-bubble">
+        {isUser ? (
+          <div className="chat-bubble-plain">{message.text}</div>
+        ) : (
+          <div className="chat-bubble-markdown">
+            <ReactMarkdown remarkPlugins={[remarkBreaks]}>{message.text}</ReactMarkdown>
+          </div>
+        )}
         {message.options && message.options.length > 0 && (
           <div className="reply-options">
             {message.options.map((opt) => (

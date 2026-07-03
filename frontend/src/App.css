@@ -203,9 +203,43 @@
   font-size: 0.9em;
   line-height: 1.6;
   overflow-wrap: anywhere;
-  white-space: pre-wrap;
   box-sizing: border-box;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.chat-bubble-plain {
+  white-space: pre-wrap;
+}
+
+.chat-bubble-markdown p {
+  margin: 0 0 8px;
+}
+
+.chat-bubble-markdown p:last-child {
+  margin-bottom: 0;
+}
+
+.chat-bubble-markdown ul,
+.chat-bubble-markdown ol {
+  margin: 4px 0 8px;
+  padding-left: 1.3em;
+}
+
+.chat-bubble-markdown li {
+  margin-bottom: 4px;
+}
+
+.chat-bubble-markdown li:last-child {
+  margin-bottom: 0;
+}
+
+.chat-bubble-markdown strong {
+  font-weight: 700;
+}
+
+.chat-bubble-markdown a {
+  color: inherit;
+  text-decoration: underline;
 }
 
 .chat-row.user .chat-bubble {
@@ -243,7 +277,6 @@
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
-  margin-left: 54px;
 }
 
 .custom-reply-btn {
@@ -349,6 +382,31 @@
   line-height: 1.4;
   margin-top: 2px;
   font-family: "DM Sans", sans-serif;
+}
+
+.log-turn-marker {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 14px 0 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.12);
+}
+
+.log-turn-marker:first-child {
+  margin-top: 2px;
+}
+
+.log-turn-marker-icon {
+  font-size: 0.8em;
+}
+
+.log-turn-marker-text {
+  color: #cbd5e1;
+  font-size: 0.78em;
+  font-weight: 600;
+  font-family: "Space Grotesk", sans-serif;
+  overflow-wrap: anywhere;
 }
 
 .raw-logs {
