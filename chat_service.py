@@ -36,6 +36,7 @@ FOLLOW_UP_TERMS = (
     "เงื่อนไข",
     "ข้อยกเว้น",
     "เอกสาร",
+    "กรมธรรม์",
 )
 
 CONTEXT_CATEGORIES = {
@@ -127,8 +128,14 @@ def answer_question(
 
     if has_explicit_car and not has_explicit_life:
         category = "car_insurance"
+        prefix = CATEGORY_QUERY_PREFIX[category]
+        if prefix not in normalized_question:
+            rag_question = f"{prefix} {normalized_question}"
     elif has_explicit_life and not has_explicit_car:
         category = "life_insurance"
+        prefix = CATEGORY_QUERY_PREFIX[category]
+        if prefix not in normalized_question:
+            rag_question = f"{prefix} {normalized_question}"
     elif is_context_followup:
         category = previous_category
         prefix = CATEGORY_QUERY_PREFIX[category]

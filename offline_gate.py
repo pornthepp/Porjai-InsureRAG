@@ -30,6 +30,7 @@ INSURANCE_KEYWORDS = [
     "ส่วนลด",
     "ซ่อมห้าง",
     "ซ่อมอู่",
+    "ผู้รับประโยชน์",
 ]
 
 CAR_INCIDENT_KEYWORDS = (

@@ -133,6 +133,96 @@ class ConversationContextTest(unittest.TestCase):
         self.assertIn("เฉพาะเรื่องประกัน", answer)
         self.assertEqual(graph.invoke_count, 0)
 
+    @patch("chat_service.route_query")
+    def test_policy_loan_followup_after_life_context_uses_life_category(
+        self,
+        mock_route_query,
+    ):
+        """
+        จำลองเคสจริงจากผู้ใช้: กดปุ่ม "กู้เงินกรมธรรม์" ใน LIFE_CLARIFY_RESPONSE
+        ต้องใช้บริบทประกันชีวิตต่อ ไม่ใช่หลุดไปเข้า GENERAL_CLARIFY_RESPONSE
+        (เดิม "กรมธรรม์"/"กู้เงิน" ไม่อยู่ใน FOLLOW_UP_TERMS เลยไม่ถูกจัดเป็น context followup)
+        """
+        graph = FakeGraph()
+        cache = {}
+        conversation = {"category": "life_insurance"}
+
+        answer = answer_question(
+            "กู้เงินกรมธรรม์",
+            graph,
+            cache,
+            conversation,
+        )
+
+        self.assertNotIn("สนใจประกันรถยนต์หรือประกันชีวิต", answer)
+        self.assertEqual(graph.invoke_count, 1)
+        self.assertEqual(
+            graph.last_state["category"],
+            "life_insurance",
+        )
+        self.assertEqual(
+            graph.last_state["question"],
+            "ประกันชีวิต กู้เงินกรมธรรม์",
+        )
+        mock_route_query.assert_not_called()
+
+    @patch("chat_service.route_query")
+    def test_bare_explicit_life_term_gets_category_prefix_for_retrieval(
+        self,
+        mock_route_query,
+    ):
+        """
+        จำลองเคสจริงจากผู้ใช้: กดปุ่ม "ผู้รับประโยชน์" ใน LIFE_CLARIFY_RESPONSE
+        แบบไม่มีบทสนทนาก่อนหน้าเลย (ทดสอบ path EXPLICIT_LIFE_TERMS โดยตรง
+        แยกจาก context-followup path)
+
+        คำเดี่ยวๆ แบบนี้ embedding อยู่ไกลจากเอกสารเกิน threshold ถ้าไม่เติม
+        คำนำหน้าหมวดให้ก่อน (พิสูจน์แล้วด้วย _search_and_grade จริง: distance
+        0.77 ไม่มี prefix เทียบกับ 0.27 เมื่อมี "ประกันชีวิต" นำหน้า)
+        """
+        graph = FakeGraph()
+        cache = {}
+        conversation = {}
+
+        answer_question(
+            "ผู้รับประโยชน์",
+            graph,
+            cache,
+            conversation,
+        )
+
+        self.assertEqual(
+            graph.last_state["category"],
+            "life_insurance",
+        )
+        self.assertEqual(
+            graph.last_state["question"],
+            "ประกันชีวิต ผู้รับประโยชน์",
+        )
+        mock_route_query.assert_not_called()
+
+    @patch("chat_service.route_query")
+    def test_explicit_term_already_containing_prefix_is_not_double_prefixed(
+        self,
+        mock_route_query,
+    ):
+        """กันไม่ให้คำถามที่มีคำว่าหมวดอยู่แล้วถูกเติมคำนำหน้าซ้ำ"""
+        graph = FakeGraph()
+        cache = {}
+        conversation = {}
+
+        answer_question(
+            "ประกันรถยนต์ชั้นหนึ่งคุ้มครองอะไรบ้าง",
+            graph,
+            cache,
+            conversation,
+        )
+
+        self.assertEqual(
+            graph.last_state["question"],
+            "ประกันรถยนต์ชั้นหนึ่งคุ้มครองอะไรบ้าง",
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
