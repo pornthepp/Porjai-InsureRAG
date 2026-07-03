@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import type { LogStep } from "../types";
 import { dotColorForType } from "../parseLogLine";
 
@@ -9,6 +10,11 @@ interface Props {
 
 export default function LogPanel({ steps, thinking, rawLogs }: Props) {
   let stepNumber = 0;
+  const logEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    logEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [steps]);
 
   return (
     <>
@@ -61,6 +67,7 @@ export default function LogPanel({ steps, thinking, rawLogs }: Props) {
             );
           })
         )}
+        <div ref={logEndRef} />
       </div>
       <details className="raw-logs">
         <summary>Logs</summary>
