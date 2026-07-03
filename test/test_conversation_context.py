@@ -223,6 +223,111 @@ class ConversationContextTest(unittest.TestCase):
             "ประกันรถยนต์ชั้นหนึ่งคุ้มครองอะไรบ้าง",
         )
 
+    @patch("chat_service.route_query")
+    def test_premium_button_gets_natural_question_suffix_for_car(
+        self,
+        mock_route_query,
+    ):
+        """
+        จำลอง bug จริงที่เจอ: กดปุ่ม "เบี้ยประกัน" ใน CAR_CLARIFY_RESPONSE
+        คำถามดิบ "ประกันรถยนต์ เบี้ยประกัน" (แค่ต่อคำหมวด+ปุ่ม) พิสูจน์แล้วว่า
+        embedding search หาเอกสารผิดตัว (ไม่ใช่ CAR-008 ที่เป็นคำตอบจริง)
+        ต้องเติมคำถามท้ายประโยคแบบ rule-based (ไม่เรียก LLM) ให้เป็นธรรมชาติขึ้น
+        """
+        graph = FakeGraph()
+        cache = {}
+        conversation = {"category": "car_insurance"}
+
+        answer_question(
+            "เบี้ยประกัน",
+            graph,
+            cache,
+            conversation,
+        )
+
+        self.assertEqual(
+            graph.last_state["question"],
+            "ประกันรถยนต์ เบี้ยประกันเท่าไหร่",
+        )
+        mock_route_query.assert_not_called()
+
+    @patch("chat_service.route_query")
+    def test_premium_button_gets_natural_question_suffix_for_life(
+        self,
+        mock_route_query,
+    ):
+        graph = FakeGraph()
+        cache = {}
+        conversation = {"category": "life_insurance"}
+
+        answer_question(
+            "เบี้ยประกัน",
+            graph,
+            cache,
+            conversation,
+        )
+
+        self.assertEqual(
+            graph.last_state["question"],
+            "ประกันชีวิต เบี้ยประกันเท่าไหร่",
+        )
+        mock_route_query.assert_not_called()
+
+    @patch("chat_service.route_query")
+    def test_unmapped_followup_terms_are_not_given_a_suffix(
+        self,
+        mock_route_query,
+    ):
+        """กันไม่ให้ term อื่นที่ไม่ได้ map ไว้ถูกเติมคำต่อท้ายผิดๆ (พฤติกรรมเดิมต้องคงอยู่)"""
+        graph = FakeGraph()
+        cache = {}
+        conversation = {"category": "car_insurance"}
+
+        answer_question(
+            "คุ้มครอง",
+            graph,
+            cache,
+            conversation,
+        )
+
+        self.assertEqual(
+            graph.last_state["question"],
+            "ประกันรถยนต์ คุ้มครอง",
+        )
+
+    @patch("chat_service.route_query")
+    def test_policy_loan_term_overrides_wrong_prior_car_context(
+        self,
+        mock_route_query,
+    ):
+        """
+        จำลอง bug จริงที่เจอ: คุยเรื่องรถอยู่ก่อน (previous_category=car_insurance)
+        แล้วพิมพ์ "กู้เงินกรมธรรม์" ลอยๆ — "กรมธรรม์" เป็นคำทั่วไปใน FOLLOW_UP_TERMS
+        ทำให้ระบบยึดหมวดรถเดิมผิดๆ ทั้งที่กู้เงินกรมธรรม์เป็นฟีเจอร์ประกันชีวิตเท่านั้น
+        (รถไม่มีกู้เงินกรมธรรม์) ต้องยึดคำเฉพาะในข้อความ ไม่ใช่บริบทเดิม ตาม Rule.md
+        "หมวดที่ระบุชัดในข้อความล่าสุด" ต้องมาก่อน "หมวดล่าสุดใน conversation state"
+        """
+        graph = FakeGraph()
+        cache = {}
+        conversation = {"category": "car_insurance"}
+
+        answer_question(
+            "กู้เงินกรมธรรม์",
+            graph,
+            cache,
+            conversation,
+        )
+
+        self.assertEqual(
+            graph.last_state["category"],
+            "life_insurance",
+        )
+        self.assertEqual(
+            graph.last_state["question"],
+            "ประกันชีวิต กู้เงินกรมธรรม์",
+        )
+        mock_route_query.assert_not_called()
+
 
 if __name__ == "__main__":
     unittest.main()

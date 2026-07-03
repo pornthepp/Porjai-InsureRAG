@@ -49,6 +49,16 @@ CATEGORY_QUERY_PREFIX = {
     "life_insurance": "ประกันชีวิต",
 }
 
+# บางปุ่มเมนู (คำสั้นๆ ไม่ใช่ประโยคคำถามธรรมชาติ) ต่อกับ prefix หมวดแล้วยัง
+# embedding search แม่นไม่พอ (พิสูจน์แล้วจริง: "ประกันรถยนต์ เบี้ยประกัน" หาเอกสารผิดตัว
+# แต่ "ประกันรถยนต์ เบี้ยประกันเท่าไหร่" หาเจอถูกต้อง) เติมคำถามท้ายประโยคแบบ
+# rule-based ตายตัว (ไม่เรียก LLM เพิ่ม ตรงตามกฎ "อย่า rewrite ทุกคำถาม" ของ AGENT.md)
+# เทียบ exact match กับคำเดิม (ไม่ใช่ substring) กันไม่ให้ไปเติมซ้ำในประโยคที่ผู้ใช้
+# พิมพ์เต็มมาเองอยู่แล้ว
+FOLLOW_UP_QUESTION_SUFFIX = {
+    "เบี้ยประกัน": "เท่าไหร่",
+}
+
 EXPLICIT_CAR_TERMS = (
     "ประกันรถ",
     "ประกันรถยนต์",
@@ -60,6 +70,7 @@ EXPLICIT_LIFE_TERMS = (
     "กรมธรรม์ชีวิต",
     "ผู้รับประโยชน์",
     "เวนคืน",
+    "กู้เงินกรมธรรม์",
 )
 
 def _make_cache_key(question: str, category=None) -> str:
@@ -139,7 +150,8 @@ def answer_question(
     elif is_context_followup:
         category = previous_category
         prefix = CATEGORY_QUERY_PREFIX[category]
-        rag_question = f"{prefix} {normalized_question}"
+        suffix = FOLLOW_UP_QUESTION_SUFFIX.get(normalized_question, "")
+        rag_question = f"{prefix} {normalized_question}{suffix}"
         print(f"[context] category: {category}")
 
     cache_key = _make_cache_key(question, category)
