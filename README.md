@@ -40,8 +40,6 @@ cd frontend && npm install && npm run dev   # รัน frontend
 
 ## เอกสารเพิ่มเติม
 
-- [AGENT.md](AGENT.md) — กติกาและเป้าหมายของโปรเจกต์สำหรับผู้ช่วยเขียนโค้ด
 - [Rule.md](Rule.md) — กติกาการสนทนาของ chatbot (เมนู, state, น้ำเสียง)
 - [WORKFLOW.md](WORKFLOW.md) — ขั้นตอนการทำงาน/พัฒนาโปรเจกต์
-- [PROJECT_CONTEXT.md](PROJECT_CONTEXT.md) — ประวัติการตัดสินใจและการเปลี่ยนแปลงของโปรเจกต์
-- `docs/specs/`, `docs/plans/`, `docs/uat/` — spec, แผนงาน และผลทดสอบ UAT ของแต่ละฟีเจอร์
+- `docs/specs/` — spec ของแต่ละฟีเจอร์

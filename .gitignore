@@ -14,3 +14,9 @@ my_vectordb/
 backup/
 
 .streamlit/secrets.toml
+
+# internal dev-log / process docs — kept locally, not published
+PROJECT_CONTEXT.md
+AGENT.md
+docs/plans/
+docs/uat/
