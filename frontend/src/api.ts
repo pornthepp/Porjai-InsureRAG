@@ -1,4 +1,6 @@
-const API_BASE = "http://localhost:8001";
+// dev mode (Vite dev server พอร์ต 5173) ยิงไปหา backend คนละพอร์ต (8001)
+// production build เสิร์ฟจาก FastAPI พอร์ตเดียวกับ frontend เลย ใช้ relative path ได้ตรงๆ
+const API_BASE = import.meta.env.DEV ? "http://localhost:8001" : "";
 
 export function getSessionId(): string {
   let id = localStorage.getItem("sessionId");

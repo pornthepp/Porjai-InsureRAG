@@ -1,0 +1,13 @@
+fastapi==0.128.8
+uvicorn[standard]==0.30.1
+pydantic==2.11.7
+python-dotenv==1.0.1
+openai==2.36.0
+
+langgraph==0.6.11
+chromadb==1.5.9
+sentence-transformers==5.1.2
+
+# numpy ต้องต่ำกว่า 2.0 กัน torch/sentence-transformers พังตอน import
+# (เจอจริง: RuntimeError: Numpy is not available บนเครื่อง dev)
+numpy<2

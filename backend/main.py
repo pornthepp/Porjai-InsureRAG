@@ -7,10 +7,12 @@ import threading
 import time
 import uuid
 from collections import OrderedDict
+from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from graph_builder import build_graph
@@ -160,3 +162,11 @@ def health():
             "detail": "OPENROUTER_API_KEY is not set; LLM-backed calls will fail",
         }
     return {"status": "ok", "config_ready": True}
+
+
+# เสิร์ฟ React build (frontend/dist) จาก process เดียวกันตอน production
+# (ตอน dev ใช้ Vite dev server แยกพอร์ต ไม่มีโฟลเดอร์ dist อยู่ mount ข้ามไปเฉยๆ)
+# ต้อง mount หลัง route API ทั้งหมดเสมอ ไม่งั้นจะไป intercept "/api/*" ก่อนถึง route จริง
+_frontend_dist = Path(__file__).resolve().parent.parent / "frontend" / "dist"
+if _frontend_dist.is_dir():
+    app.mount("/", StaticFiles(directory=str(_frontend_dist), html=True), name="frontend")
