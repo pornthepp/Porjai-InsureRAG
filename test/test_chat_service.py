@@ -38,12 +38,17 @@ class ChatServiceTest(unittest.TestCase):
         self.assertEqual(answer, "คำตอบจาก RAG")
 
     def test_general_insurance_question_does_not_invoke_graph(self):
+        """
+        เดิม GENERAL_CLARIFY_RESPONSE ถามกลับเฉยๆ ("สนใจรถยนต์หรือชีวิตคะ") ทั้งที่
+        ลูกค้าถามตรงๆ ว่ามีแบบไหนบ้าง — เปลี่ยนให้บอกตรงก่อนว่ามีอะไรบ้าง แล้วค่อยชวนเลือก
+        """
         graph = FakeGraph()
 
         answer = answer_question("มีประกันแบบไหนบ้าง", graph)
 
         self.assertEqual(graph.invoke_count, 0)
-        self.assertIn("สอบถามเพิ่มเติม", answer)
+        self.assertIn("ประกันรถยนต์", answer)
+        self.assertIn("ประกันชีวิต", answer)
 
     def test_broad_life_question_does_not_invoke_graph(self):
         graph = FakeGraph()
